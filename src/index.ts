@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express'
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 5000;
 
 const DB = {
   videos: [
@@ -58,5 +58,5 @@ app.post('/videos', (req: Request, res: Response) => {
 })
 
 app.listen(port, () => {
-  console.log(`Espress is running on port ${port}`);
+  console.log(`Express is running on port ${port}`);
 })
