@@ -1,17 +1,12 @@
 import { Router, Request, Response } from "express";
 
-let products = [{id: 1, title: 'tomato'}, {id: 2, title: 'orange'}];
+import { productsRepository } from "../repositories/products-repository";
 
 export const productsRouter = Router({})
 
 productsRouter.get('/', (req: Request, res: Response) => {
-  const { title } = req.query;
-  if (title) {
-    res.send(products.filter(p => p.title.includes(String(title))))
-    return;
-  }
-
-  res.send(products);
+  const foundProducts = productsRepository.findProducts(req.query.title?.toString());
+  res.send(foundProducts)
 });
 
 productsRouter.post('/', (req: Request, res: Response) => {
@@ -21,50 +16,48 @@ productsRouter.post('/', (req: Request, res: Response) => {
     return res.sendStatus(400)
   }
 
-  const newProduct = {
-    id: Date.now(),
-    title: body.title
-  };
-
-  products.push(newProduct);
-  res.status(201).send(newProduct);
+  const createdProduct = productsRepository.createProduct(body.title);
+  res.status(201).send(createdProduct);
 });
 
 productsRouter.get('/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  let product = products.find(p => p.id === +id);
+  const product = productsRepository.findProductById(+req.params.id);
 
-  if (!product) {
+  if (product) {
+    res.send(product)
+  } else {
     res.sendStatus(404);
-    return;
-  }
-
-  res.send(product)
+  }  
 });
 
 productsRouter.put('/:id', (req: Request, res: Response) => {
-  const product = products.find(p => p.id === +req.params.id);
-  if (!product) {
-    res.sendStatus(404);
-    return;
-  }
-  const {title} = req.body;
+  const { title } = req.body;
   if (!title) {
     res.sendStatus(400);
     return;
   }
-  product.title = title;
-  return res.status(200).send(product);
 
+  const id = Number(req.params.id);
+  const isProductUpdated = productsRepository.updateProduct(id, title)
+
+  if (isProductUpdated) {
+    const updatedProduct = productsRepository.findProductById(id);
+    res.status(200).send(updatedProduct);
+  } else {
+    res.sendStatus(404);
+  }
 })
 
 productsRouter.delete('/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  if (!id) {
+  const isDeleted = productsRepository.deleteProduct(Number(req.params.id));
+  if (isDeleted) {
+    res.sendStatus(204)
+  } else {
     res.sendStatus(404);
-    return;
   }
+});
 
-  products = products.filter(p => p.id !== +id);
-  res.sendStatus(204)
+productsRouter.delete('/__test__/data', (req: Request, res: Response) => {
+  productsRepository.deleteAll();
+  res.sendStatus(204);
 });

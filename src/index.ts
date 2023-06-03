@@ -1,10 +1,10 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import bodyParser from 'body-parser';
 
 import { productsRouter } from './routes/products-router';
 import { addressesRouter } from './routes/addresses-router';
 
-const app = express();
+export const app = express();
 
 const port = process.env.PORT || 5000;
 
